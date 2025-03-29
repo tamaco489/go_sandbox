@@ -13,17 +13,21 @@ func NewUserSlicerByLoGroupBy() {
 	// サンプルデータを作成
 	users, players := createSampleData()
 
-	// ユーザーをProviderUIDでグループ化
-	grouped := groupUsersByProviderUID(users)
-
-	// プレイヤーがいるユーザーといないユーザーに分ける
-	var withPlayers []*model.User
-	var withoutPlayers []*model.User
-	for _, group := range grouped {
-		with, without := separateUsersByPlayerExistence(group, players)
-		withPlayers = append(withPlayers, with...)
-		withoutPlayers = append(withoutPlayers, without...)
+	// プレイヤーのProviderUIDをMapに変換（効率的に存在チェックするため）
+	playerMap := make(map[string]bool)
+	for _, p := range players {
+		playerMap[p.ProviderUID] = true
 	}
+
+	// ユーザーをプレイヤーの有無でグループ化
+	grouped := lo.GroupBy(users, func(user *model.User) bool {
+		// プレイヤーが存在すればtrue、存在しなければfalse
+		return playerMap[user.ProviderUID]
+	})
+
+	// プレイヤーがいるユーザーといないユーザーをそれぞれ取り出す
+	withPlayers := grouped[true]     // プレイヤーがいるユーザー
+	withoutPlayers := grouped[false] // プレイヤーがいないユーザー
 
 	// ユーザーをID順にソート
 	withPlayers = sortUsersByID(withPlayers)
@@ -51,37 +55,6 @@ func sortUsersByID(users []*model.User) []*model.User {
 		return users[i].ID < users[j].ID
 	})
 	return users
-}
-
-// プレイヤーがいるユーザーといないユーザーを分ける
-func separateUsersByPlayerExistence(users []*model.User, players []*model.Player) ([]*model.User, []*model.User) {
-	// プレイヤーをMapに変換（効率的に存在チェックするため）
-	playerMap := make(map[string]bool)
-	for _, p := range players {
-		playerMap[p.ProviderUID] = true
-	}
-
-	var withPlayers []*model.User
-	var withoutPlayers []*model.User
-
-	// ユーザーごとにプレイヤーの存在をチェック
-	for _, user := range users {
-		if playerMap[user.ProviderUID] {
-			withPlayers = append(withPlayers, user)
-		} else {
-			withoutPlayers = append(withoutPlayers, user)
-		}
-	}
-
-	return withPlayers, withoutPlayers
-}
-
-// ユーザーをProviderUIDでグループ化
-func groupUsersByProviderUID(users []*model.User) map[string][]*model.User {
-	// lo.GroupByを使って、ProviderUIDをキーにしてユーザーをグループ化
-	return lo.GroupBy(users, func(user *model.User) string {
-		return user.ProviderUID
-	})
 }
 
 // サンプルデータ作成
