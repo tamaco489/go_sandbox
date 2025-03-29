@@ -14,10 +14,7 @@ func NewUserSlicerByLoGroupBy() {
 	users, players := createSampleData()
 
 	// プレイヤーのProviderUIDをMapに変換（効率的に存在チェックするため）
-	playerMap := make(map[string]bool)
-	for _, p := range players {
-		playerMap[p.ProviderUID] = true
-	}
+	playerMap := createPlayerMap(players)
 
 	// ユーザーをプレイヤーの有無でグループ化
 	grouped := lo.GroupBy(users, func(user *model.User) bool {
@@ -55,6 +52,15 @@ func sortUsersByID(users []*model.User) []*model.User {
 		return users[i].ID < users[j].ID
 	})
 	return users
+}
+
+// プレイヤーのProviderUIDをMapに変換する関数
+func createPlayerMap(players []*model.Player) map[string]bool {
+	playerMap := make(map[string]bool)
+	for _, p := range players {
+		playerMap[p.ProviderUID] = true
+	}
+	return playerMap
 }
 
 // サンプルデータ作成
