@@ -1,6 +1,6 @@
 package main
 
-import lib "github.com/tamaco489/go_sandbox/lo/lib/map"
+import lib "github.com/tamaco489/go_sandbox/lo/lib/reduce"
 
 func main() {
 	// lo.Map
@@ -13,5 +13,8 @@ func main() {
 	// lib.NewPlayerSlicerByLoSliceToMap()
 
 	// lo.FilterMap
-	lib.NewPlayerSlicerByLoFilterMap()
+	// lib.NewPlayerSlicerByLoFilterMap()
+
+	// lo.Reduce
+	lib.NewPokemonSliceByLoReducer()
 }
