@@ -1,6 +1,6 @@
 package main
 
-import lib "github.com/tamaco489/go_sandbox/lo/lib/reduce"
+import lib "github.com/tamaco489/go_sandbox/lo/lib/group_by"
 
 func main() {
 	// lo.Map
@@ -16,5 +16,8 @@ func main() {
 	// lib.NewPlayerSlicerByLoFilterMap()
 
 	// lo.Reduce
-	lib.NewPokemonSliceByLoReducer()
+	// lib.NewPokemonSliceByLoReducer()
+
+	// lo.GroupBy
+	lib.NewUserSlicerByLoGroupBy()
 }
