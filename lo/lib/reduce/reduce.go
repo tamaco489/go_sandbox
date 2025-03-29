@@ -1,8 +1,9 @@
 package lib
 
 import (
-	"fmt"
-	"sort"
+	"log"
+	"math/rand"
+	"time"
 
 	"github.com/samber/lo"
 	"github.com/tamaco489/go_sandbox/lo/model"
@@ -11,86 +12,41 @@ import (
 func NewPokemonSliceByLoReducer() {
 
 	// ポケモンのサンプルデータ
-	pokemonList := genSampleData()
-
-	// Top3のポケモンを取得
-	top3PokemonList := getTopPokemonListByStats(pokemonList, 10)
-
-	// 結果を表示
-	fmt.Println("Top 3 Pokemon by Stats:")
-	for i, p := range top3PokemonList {
-		fmt.Printf("[rank: %d] name: %s, total_stats: %d\n", i+1, p.Name, p.TotalStats)
+	pokemonList := getRandomPokemonList()
+	for i, v := range pokemonList {
+		log.Printf("[pokemon] No: %d, name: %s, ttl_stats: %d", i+1, v.Name, v.CalculateStats().TotalStats)
 	}
-
-	/* [ステータスが高い上位3匹のみ出力]
-	Top 3 Pokemon by Stats:
-	[rank: 1] name: Pikachu, total_stats: 527
-	[rank: 2] name: Bulbasaur, total_stats: 525
-	[rank: 3] name: Charmander, total_stats: 516
+	/*
+		2025/03/29 16:47:20 [pokemon] No: 1, name: Snorlax, ttl_stats: 747
+		2025/03/29 16:47:20 [pokemon] No: 2, name: Eevee, ttl_stats: 502
+		2025/03/29 16:47:20 [pokemon] No: 3, name: Bulbasaur, ttl_stats: 525
+		2025/03/29 16:47:20 [pokemon] No: 4, name: Charmander, ttl_stats: 516
+		2025/03/29 16:47:20 [pokemon] No: 5, name: Gyarados, ttl_stats: 747
+		2025/03/29 16:47:20 [pokemon] No: 6, name: Blastoise, ttl_stats: 737
+		2025/03/29 16:47:20 Total Stats of selected 6 Pokemons: 3774
 	*/
+
+	// 選択された6匹のポケモンのTotalStatsの合計を計算
+	totalStats := lo.Reduce(pokemonList, func(acc uint32, p *model.Pokemon, index int) uint32 {
+		return acc + p.CalculateStats().TotalStats
+	}, 0)
+	log.Printf("Total Stats of selected 6 Pokemons: %d", totalStats) // 2025/03/29 16:47:20 Total Stats of selected 6 Pokemons: 3774
 }
 
-// ポケモンのステータス合計を保持する構造体
-type pokemonStat struct {
-	Name       string
-	TotalStats uint32
-}
+func getRandomPokemonList() []*model.Pokemon {
+	pokemonList := genSampleData()
+	randGen := rand.New(rand.NewSource(time.Now().UnixNano()))
 
-// newInitPokemonStats は、ポケモンのステータスを保持するスライスを初期化する関数。
-//
-// 初期値として空のスライスを返すことで、lo.Reduce の初期値として適切な型を提供する。
-func newInitPokemonStats() []pokemonStat {
-	return make([]pokemonStat, 0)
-}
-
-// newSetPokemonStats は、新しいポケモンのステータスエントリを作成するコンストラクタ関数。
-func newSetPokemonStats(name string, totalStats uint32) *pokemonStat {
-	return &pokemonStat{
-		Name:       name,
-		TotalStats: totalStats,
-	}
-}
-
-// GetTopPokemonListByStats: ポケモンのリストを受け取り、ステータスの合計値が高い上位 topN のポケモンを取得する関数。
-//
-// pokemonList: 対象となるポケモンのリスト
-//
-// topN: 取得する上位ポケモンの数
-//
-// 戻り値: ステータスの高いポケモンのリスト（降順ソート済み）
-func getTopPokemonListByStats(pokemonList []*model.Pokemon, topN int) []pokemonStat {
-
-	reducer := func(acc []pokemonStat, pokemon *model.Pokemon, index int) []pokemonStat {
-		// ステータス計算
-		stats := pokemon.CalculateStats()
-
-		// 合計ステータスを保存するエントリ（コンストラクタを使用）
-		newEntry := newSetPokemonStats(pokemon.Name, stats.TotalStats)
-
-		acc = append(acc, *newEntry)
-
-		// 上位n匹のみ返す
-		if len(acc) > topN {
-			return acc[:topN]
-		}
-
-		return acc
-	}
-
-	// lo.Reduce を使って、ポケモンのリスト全体を畳み込み処理します。
-	// 初期値として、newInitPokemonStats() を使用して空の []pokemonStat を渡しています。
-	// これにより、pokemonList の各要素に対して、reducer 関数が順次適用されます。
-	// 最終的に、上位 topN のポケモンのステータスエントリが topPokemonList に格納されます。
-	topPokemonList := lo.Reduce(pokemonList, reducer, newInitPokemonStats())
-
-	// 降順ソート
-	sort.Slice(topPokemonList, func(i, j int) bool {
-		return topPokemonList[i].TotalStats > topPokemonList[j].TotalStats
+	// スライス内の要素をシャッフル
+	randGen.Shuffle(len(pokemonList), func(i, j int) {
+		pokemonList[i], pokemonList[j] = pokemonList[j], pokemonList[i]
 	})
 
-	return topPokemonList
+	// シャッフル後、最初の6つの要素を選択
+	return pokemonList[:6]
 }
 
+// サンプルのポケモンデータを生成する関数
 func genSampleData() []*model.Pokemon {
 	return []*model.Pokemon{
 		model.NewPokemon(1, "Pikachu", model.BaseStats{HP: 35, Attack: 55, Defense: 40, Speed: 90, SpecialAt: 50, SpecialDe: 50}, model.IndividualValues{HP: 31, Attack: 31, Defense: 31, Speed: 31, SpecialAt: 31, SpecialDe: 31}, model.EffortValues{HP: 0, Attack: 0, Defense: 0, Speed: 252, SpecialAt: 0, SpecialDe: 0}, 50),
