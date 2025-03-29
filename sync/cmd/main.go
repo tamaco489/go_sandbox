@@ -1,7 +1,10 @@
 package main
 
-import "fmt"
+import (
+	lib "github.com/tamaco489/go_sandbox/sync/lib/mutex"
+)
 
 func main() {
-	fmt.Println("hello world")
+	// sync.Mutex
+	lib.MutexProcess()
 }
