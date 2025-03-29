@@ -14,7 +14,7 @@ func NewPokemonSliceByLoReducer() {
 	pokemonList := genSampleData()
 
 	// Top3のポケモンを取得
-	top3PokemonList := getTopPokemonListByStats(pokemonList, 3)
+	top3PokemonList := getTopPokemonListByStats(pokemonList, 10)
 
 	// 結果を表示
 	fmt.Println("Top 3 Pokemon by Stats:")
@@ -77,7 +77,10 @@ func getTopPokemonListByStats(pokemonList []*model.Pokemon, topN int) []pokemonS
 		return acc
 	}
 
-	// lo.Reduceを使ってポケモンを畳み込む
+	// lo.Reduce を使って、ポケモンのリスト全体を畳み込み処理します。
+	// 初期値として、newInitPokemonStats() を使用して空の []pokemonStat を渡しています。
+	// これにより、pokemonList の各要素に対して、reducer 関数が順次適用されます。
+	// 最終的に、上位 topN のポケモンのステータスエントリが topPokemonList に格納されます。
 	topPokemonList := lo.Reduce(pokemonList, reducer, newInitPokemonStats())
 
 	// 降順ソート
