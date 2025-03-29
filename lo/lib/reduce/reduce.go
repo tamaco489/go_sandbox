@@ -9,6 +9,7 @@ import (
 	"github.com/tamaco489/go_sandbox/lo/model"
 )
 
+// NewPokemonSliceByLoReducer は、ランダムに選ばれた6匹のポケモンの TotalStats の合計を計算し、結果を出力します。
 func NewPokemonSliceByLoReducer() {
 
 	// ポケモンのサンプルデータ
@@ -23,17 +24,21 @@ func NewPokemonSliceByLoReducer() {
 		2025/03/29 16:47:20 [pokemon] No: 4, name: Charmander, ttl_stats: 516
 		2025/03/29 16:47:20 [pokemon] No: 5, name: Gyarados, ttl_stats: 747
 		2025/03/29 16:47:20 [pokemon] No: 6, name: Blastoise, ttl_stats: 737
-		2025/03/29 16:47:20 Total Stats of selected 6 Pokemons: 3774
 	*/
 
-	// 選択された6匹のポケモンのTotalStatsの合計を計算
+	// lo.Reduce を使用して、選ばれたポケモンのTotalStatsの合計を計算
 	totalStats := lo.Reduce(pokemonList, func(acc uint32, p *model.Pokemon, index int) uint32 {
+		// 各ポケモンのTotalStatsを加算する
+		// acc は累積値、p は現在のポケモン、index はポケモンのインデックス
 		return acc + p.CalculateStats().TotalStats
 	}, 0)
+
 	log.Printf("Total Stats of selected 6 Pokemons: %d", totalStats) // 2025/03/29 16:47:20 Total Stats of selected 6 Pokemons: 3774
 }
 
+// getRandomPokemonList は、サンプルポケモンデータをシャッフルして、最初の6匹のポケモンをランダムに選択して返します。
 func getRandomPokemonList() []*model.Pokemon {
+
 	pokemonList := genSampleData()
 	randGen := rand.New(rand.NewSource(time.Now().UnixNano()))
 
