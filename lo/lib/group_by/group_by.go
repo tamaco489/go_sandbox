@@ -8,6 +8,12 @@ import (
 	"github.com/tamaco489/go_sandbox/lo/model"
 )
 
+// NewUserSlicerByLoGroupBy: ユーザとプレイヤー、それぞれのリストを検証し、
+// 共通のパラメータとなる provider_uid を持っている場合とそうでない場合とで表示順を区別する
+//
+// usersはprovider_idを必ず持っているが、playerは持っている場合とそうでない場合がある。
+// そのため、player側のリストで provider_uid を持っている場合は共通アカウントとみなしリストの上部へ、
+// provider_uid を持っていない場合はリストの下部へ表示するため、lo.GroupBy でそれぞれグルーピング操作を行う。
 func NewUserSlicerByLoGroupBy() {
 
 	// サンプルデータを作成
