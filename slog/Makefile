@@ -9,7 +9,7 @@ run: build
 
 .PHONY: get_health get_me
 get_health:
-	curl -sX GET http://localhost:8080/api/v1/health | jq .
+	curl -i -X GET http://localhost:8080/api/v1/health
 
 get_me:
-	curl -sX GET http://localhost:8080/api/v1/users/me | jq .
+	curl -i -X GET http://localhost:8080/api/v1/users/me    
