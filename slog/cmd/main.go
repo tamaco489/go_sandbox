@@ -9,17 +9,14 @@ import (
 )
 
 func main() {
-	// Server configuration
 	port := ":8080"
 
-	// Routing setup
-	http.HandleFunc("/api/v1/health", handler.HandleHealth)
-	http.HandleFunc("/api/v1/users/me", handler.HandleUserMe)
+	router := handler.NewRouter()
+	router.RegisterRoutes()
 
-	// Start server
 	slog.Info("Server started", "port", port)
 
-	if err := http.ListenAndServe(port, nil); err != nil {
+	if err := http.ListenAndServe(port, router); err != nil {
 		log.Fatal("Server startup error:", err)
 	}
 }
