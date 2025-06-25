@@ -14,6 +14,7 @@ func main() {
 
 	// Routing setup
 	http.HandleFunc("/api/v1/health", handler.HandleHealth)
+	http.HandleFunc("/api/v1/users/me", handler.HandleUserMe)
 
 	// Start server
 	slog.Info("Server started", "port", port)
