@@ -2,21 +2,25 @@ package handler
 
 import (
 	"net/http"
+
+	"github.com/tamaco489/go_sandbox/slog/internal/handler/middleware"
 )
 
 type Router struct {
-	mux *http.ServeMux
+	mux        *http.ServeMux
+	authorizer middleware.Authorizer
 }
 
 func NewRouter() *Router {
 	return &Router{
-		mux: http.NewServeMux(),
+		mux:        http.NewServeMux(),
+		authorizer: middleware.NewAuth(),
 	}
 }
 
 func (r *Router) RegisterRoutes() {
 	r.mux.HandleFunc("/api/v1/health", HandleHealth)
-	r.mux.HandleFunc("/api/v1/users/me", HandleUserMe)
+	r.mux.HandleFunc("/api/v1/users/me", middleware.WithAuth(r.authorizer, HandleUserMe))
 }
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
