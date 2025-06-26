@@ -19,8 +19,8 @@ func NewRouter() *Router {
 }
 
 func (r *Router) RegisterRoutes() {
-	r.mux.HandleFunc("/api/v1/health", HandleHealth)
-	r.mux.HandleFunc("/api/v1/users/me", middleware.WithAuth(r.authorizer, HandleUserMe))
+	r.mux.HandleFunc("/api/v1/health", middleware.LoggingMiddleware(HandleHealth))
+	r.mux.HandleFunc("/api/v1/users/me", middleware.LoggingMiddleware(middleware.WithAuth(r.authorizer, HandleUserMe)))
 }
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
