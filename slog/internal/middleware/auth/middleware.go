@@ -14,13 +14,13 @@ type Authorizer interface {
 // WithAuth: 認可ミドルウェア
 func WithAuth(authorizer Authorizer, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// 認可処理を実行
+
+		// 検証中のため意図的にエラーを返す
+		// http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		// return
+
 		authInfo, err := authorizer.Authorize(r.Context(), r)
 		if err != nil {
-			// エラー時にステータスコードをコンテキストに設定
-			ctx := logger.WithStatusCode(r.Context(), http.StatusUnauthorized)
-			r = r.WithContext(ctx)
-
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
@@ -29,6 +29,7 @@ func WithAuth(authorizer Authorizer, next http.HandlerFunc) http.HandlerFunc {
 		ctx := logger.WithAuthorizedInfo(r.Context(), *authInfo)
 		r = r.WithContext(ctx)
 
+		// 更新されたリクエストを次のハンドラーに渡す
 		next.ServeHTTP(w, r)
 	}
 }
