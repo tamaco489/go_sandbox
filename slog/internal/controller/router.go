@@ -22,7 +22,7 @@ func NewRouter() *Router {
 
 func (r *Router) RegisterRoutes() {
 	r.logRouter.HandleFunc("/api/v1/health", handler.HandleHealth) // NOTE: Skip authorization for health check
-	r.logRouter.HandleFunc("/api/v1/users/me", auth.WithAuth(r.authorizer, handler.HandleUserMe))
+	r.logRouter.HandleFunc("/api/v1/users/me", auth.WithAuth(r.authorizer, logging.WithLogging(handler.HandleUserMe)))
 }
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {

@@ -27,12 +27,14 @@ func (h *BaseHandler) WriteJSONResponse(w http.ResponseWriter, r *http.Request, 
 	w.WriteHeader(statusCode)
 
 	// ステータスコードをコンテキストに設定
-	r = h.SetStatusCode(r, statusCode)
+	ctx := logger.WithStatusCode(r.Context(), statusCode)
+	r = r.WithContext(ctx)
 
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		// エラー時のステータスコードをコンテキストに設定
-		r = h.SetStatusCode(r, http.StatusInternalServerError)
+		ctx = logger.WithStatusCode(r.Context(), http.StatusInternalServerError)
+		r = r.WithContext(ctx)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

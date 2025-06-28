@@ -91,7 +91,7 @@ var globalLogger *Logger
 // New: ロガーの新しいインスタンスを作成
 func New() *Logger {
 	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
+		Level: slog.LevelDebug,
 	})
 
 	return &Logger{
@@ -201,20 +201,28 @@ func GetStatusCode(ctx context.Context) (int, bool) {
 	return statusCode, ok
 }
 
-// ResponseWriterWrapper: ステータスコードをキャプチャするレスポンスライターラッパー
+// ResponseWriterWrapper: ステータスコードをキャプチャし、ログを出力するレスポンスライターラッパー
 type ResponseWriterWrapper struct {
 	http.ResponseWriter
 	statusCode int
 	ctx        context.Context
+	req        *http.Request
+	startTime  time.Time
+	systemInfo SystemInfo
+	logged     bool // ログ出力済みフラグ
 }
 
 // NewResponseWriterWrapper: 新しいレスポンスライターラッパーを作成
-func NewResponseWriterWrapper(w http.ResponseWriter, ctx context.Context) *ResponseWriterWrapper {
+func NewResponseWriterWrapper(w http.ResponseWriter, ctx context.Context, req *http.Request, startTime time.Time, systemInfo SystemInfo) *ResponseWriterWrapper {
 	defaultStatusCode := http.StatusOK
 	return &ResponseWriterWrapper{
 		ResponseWriter: w,
 		statusCode:     defaultStatusCode,
 		ctx:            ctx,
+		req:            req,
+		startTime:      startTime,
+		systemInfo:     systemInfo,
+		logged:         false,
 	}
 }
 
@@ -222,6 +230,75 @@ func NewResponseWriterWrapper(w http.ResponseWriter, ctx context.Context) *Respo
 func (rw *ResponseWriterWrapper) WriteHeader(statusCode int) {
 	rw.statusCode = statusCode
 	rw.ResponseWriter.WriteHeader(statusCode)
+	
+	// ログ出力は無効化（ログミドルウェアで出力するため）
+	// if !rw.logged {
+	// 	rw.logRequest(statusCode)
+	// 	rw.logged = true
+	// }
+}
+
+// Write: レスポンスボディを書き込み
+func (rw *ResponseWriterWrapper) Write(data []byte) (int, error) {
+	// WriteHeaderが呼ばれていない場合は、デフォルトのステータスコードを設定
+	if rw.statusCode == http.StatusOK {
+		rw.statusCode = http.StatusOK
+	}
+	
+	return rw.ResponseWriter.Write(data)
+}
+
+// logRequest: リクエストのログを出力
+func (rw *ResponseWriterWrapper) logRequest(statusCode int) {
+	// リクエストの現在のコンテキストから最新の認可情報を取得
+	authInfo, ok := GetAuthorizedInfo(rw.req.Context())
+	if !ok {
+		authInfo = NewInitialAuthorizedInfo()
+		GetLogger().DebugContext(rw.req.Context(), "認可情報が見つからないため初期値を使用", "auth_info", authInfo)
+	} else {
+		GetLogger().DebugContext(rw.req.Context(), "認可情報を取得しました", "auth_info", authInfo)
+	}
+
+	// HTTP情報を作成
+	httpInfo := NewInitialHTTPRequestInfo(rw.req, rw.startTime, statusCode)
+
+	// ログレベルに応じて出力
+	switch {
+	// status: 5xx, level: error
+	case statusCode >= http.StatusInternalServerError:
+		GetLogger().ErrorContext(rw.req.Context(), "Request completed",
+			"status_code", statusCode,
+			"http_info", httpInfo,
+			"system_info", rw.systemInfo,
+			"auth_info", authInfo,
+		)
+
+	// status: 4xx, level: warn
+	case statusCode >= http.StatusBadRequest:
+		GetLogger().WarnContext(rw.req.Context(), "Request completed",
+			"status_code", statusCode,
+			"http_info", httpInfo,
+			"system_info", rw.systemInfo,
+			"auth_info", authInfo,
+		)
+
+	// status: 2xx, level: info
+	case statusCode >= http.StatusOK && statusCode < http.StatusBadRequest:
+		GetLogger().InfoContext(rw.req.Context(), "Request completed",
+			"status_code", statusCode,
+			"http_info", httpInfo,
+			"system_info", rw.systemInfo,
+			"auth_info", authInfo,
+		)
+
+	default:
+		GetLogger().InfoContext(rw.req.Context(), "Request completed",
+			"status_code", statusCode,
+			"http_info", httpInfo,
+			"system_info", rw.systemInfo,
+			"auth_info", authInfo,
+		)
+	}
 }
 
 // GetStatusCode: キャプチャされたステータスコードを取得
