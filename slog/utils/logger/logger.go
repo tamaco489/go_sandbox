@@ -7,21 +7,23 @@ import (
 	"os"
 )
 
-// globalLogger: ロガーのグローバルインスタンス
+// globalLogger: global logger instance
 var globalLogger *Logger
 
-// New: ロガーの新しいインスタンスを作成
+// New: create new logger instance
 func New() *Logger {
-	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelDebug,
-	})
+	handler := slog.NewJSONHandler(
+		os.Stdout, &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		},
+	)
 
 	return &Logger{
 		Logger: slog.New(handler),
 	}
 }
 
-// GetLogger: ロガーのグローバルインスタンスを取得
+// GetLogger: get global logger instance
 func GetLogger() *Logger {
 	if globalLogger == nil {
 		globalLogger = New()
@@ -29,40 +31,40 @@ func GetLogger() *Logger {
 	return globalLogger
 }
 
-// DebugContext: デバッグログを出力
+// DebugContext: output debug log
 func (l *Logger) DebugContext(ctx context.Context, msg string, args ...any) {
 	l.Logger.DebugContext(ctx, msg, args...)
 }
 
-// InfoContext: 情報ログを出力
+// InfoContext: output info log
 func (l *Logger) InfoContext(ctx context.Context, msg string, args ...any) {
 	l.Logger.InfoContext(ctx, msg, args...)
 }
 
-// WarnContext: 警告ログを出力
+// WarnContext: output warn log
 func (l *Logger) WarnContext(ctx context.Context, msg string, args ...any) {
 	l.Logger.WarnContext(ctx, msg, args...)
 }
 
-// ErrorContext: エラーログを出力
+// ErrorContext: output error log
 func (l *Logger) ErrorContext(ctx context.Context, msg string, args ...any) {
 	l.Logger.ErrorContext(ctx, msg, args...)
 }
 
-// FatalContext: 致命的なエラーログを出力
+// FatalContext: output fatal log
 func (l *Logger) FatalContext(ctx context.Context, msg string, args ...any) {
 	l.Logger.ErrorContext(ctx, msg, args...)
 	os.Exit(1)
 }
 
-// ResponseWriterWrapper: ステータスコードとコンテキストを記録するラッパー
+// ResponseWriterWrapper: wrapper to record status code and context
 type ResponseWriterWrapper struct {
 	http.ResponseWriter
 	statusCode int
 	ctx        *context.Context
 }
 
-// NewResponseWriterWrapper: 新しいResponseWriterWrapperを作成
+// NewResponseWriterWrapper: create new ResponseWriterWrapper
 func NewResponseWriterWrapper(w http.ResponseWriter) *ResponseWriterWrapper {
 	defaultStatusCode := http.StatusOK
 	return &ResponseWriterWrapper{
