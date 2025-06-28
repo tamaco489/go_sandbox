@@ -1,10 +1,13 @@
-.PHONY: build run
+.PHONY: build run up
 
 build:
 	go build -o build/main cmd/main.go
 
 run: build
 	./build/main
+
+up:
+	air -c .air.toml
 
 
 .PHONY: get_health get_me
