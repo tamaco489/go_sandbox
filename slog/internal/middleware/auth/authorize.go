@@ -21,6 +21,6 @@ func (a *Auth) Authorize(ctx context.Context, r *http.Request) (*logger.Authoriz
 	return &logger.AuthorizedInfo{
 		Role:     "user",
 		TenantID: "tenant123",
-		MemberID: "member456", // 固有のmember_id
+		MemberID: "member456", // unique member_id
 	}, nil
 }

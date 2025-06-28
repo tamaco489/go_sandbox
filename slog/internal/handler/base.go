@@ -28,13 +28,13 @@ func (h *BaseHandler) WriteJSONResponse(w http.ResponseWriter, r *http.Request, 
 
 	// set status code to context
 	ctx := logger.SetStatusCodeContext(r.Context(), statusCode)
-	_ = r.WithContext(ctx) // コンテキストを更新するが、この関数内では使用しない
+	_ = r.WithContext(ctx) // Update context but not used in this function
 
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		// set status code to context for error case
 		ctx = logger.SetStatusCodeContext(r.Context(), http.StatusInternalServerError)
-		_ = r.WithContext(ctx) // エラー時のコンテキスト更新
+		_ = r.WithContext(ctx) // Update context for error case
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
