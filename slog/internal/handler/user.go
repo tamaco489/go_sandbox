@@ -18,5 +18,6 @@ func HandleUserMe(w http.ResponseWriter, r *http.Request) {
 	response := UserMeResponse{
 		UID: "864c857e-bc03-7b09-5b8f-750d312636c3",
 	}
+
 	base.WriteJSONResponse(w, r, http.StatusOK, response)
 }

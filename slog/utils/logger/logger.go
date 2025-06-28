@@ -60,14 +60,14 @@ func (l *Logger) LogRequestCompletion(ctx context.Context, statusCode int, httpI
 	switch {
 	// status: 5xx, level: error
 	case statusCode >= http.StatusInternalServerError:
-		l.ErrorContext(ctx, "Request completed", attrs...)
+		l.ErrorContext(ctx, "request failed", attrs...)
 
 	// status: 4xx, level: warn
 	case statusCode >= http.StatusBadRequest:
-		l.WarnContext(ctx, "Request completed", attrs...)
+		l.WarnContext(ctx, "request failed", attrs...)
 
 	// status: 2xx, level: info
 	default:
-		l.InfoContext(ctx, "Request completed", attrs...)
+		l.InfoContext(ctx, "request completed", attrs...)
 	}
 }
