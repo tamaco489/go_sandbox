@@ -48,8 +48,14 @@ func RequestMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			// Log request completion with simplified structure
 			ctx := *wrappedWriter.GetContext()
 
-			l := logger.New()
-			l.LogRequestCompletion(ctx, wrappedWriter.GetStatusCode(), httpInfo, systemInfo, finalAuthInfo)
+			// Log request completion
+			logger.New().LogRequestCompletion(
+				ctx,
+				wrappedWriter.GetStatusCode(),
+				httpInfo,
+				systemInfo,
+				finalAuthInfo,
+			)
 		}()
 
 		// Execute next handler
