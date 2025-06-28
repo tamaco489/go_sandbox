@@ -248,56 +248,6 @@ func (rw *ResponseWriterWrapper) Write(data []byte) (int, error) {
 	return rw.ResponseWriter.Write(data)
 }
 
-// logRequest: リクエストのログを出力
-func (rw *ResponseWriterWrapper) logRequest(statusCode int) {
-	// リクエストの現在のコンテキストから最新の認可情報を取得
-	authInfo, ok := GetAuthorizedInfo(rw.req.Context())
-	if !ok {
-		authInfo = NewInitialAuthorizedInfo()
-	}
-
-	// HTTP情報を作成
-	httpInfo := NewInitialHTTPRequestInfo(rw.req, rw.startTime, statusCode)
-
-	// ログレベルに応じて出力
-	switch {
-	// status: 5xx, level: error
-	case statusCode >= http.StatusInternalServerError:
-		GetLogger().ErrorContext(rw.req.Context(), "Request completed",
-			"status_code", statusCode,
-			"http_info", httpInfo,
-			"system_info", rw.systemInfo,
-			"auth_info", authInfo,
-		)
-
-	// status: 4xx, level: warn
-	case statusCode >= http.StatusBadRequest:
-		GetLogger().WarnContext(rw.req.Context(), "Request completed",
-			"status_code", statusCode,
-			"http_info", httpInfo,
-			"system_info", rw.systemInfo,
-			"auth_info", authInfo,
-		)
-
-	// status: 2xx, level: info
-	case statusCode >= http.StatusOK && statusCode < http.StatusBadRequest:
-		GetLogger().InfoContext(rw.req.Context(), "Request completed",
-			"status_code", statusCode,
-			"http_info", httpInfo,
-			"system_info", rw.systemInfo,
-			"auth_info", authInfo,
-		)
-
-	default:
-		GetLogger().InfoContext(rw.req.Context(), "Request completed",
-			"status_code", statusCode,
-			"http_info", httpInfo,
-			"system_info", rw.systemInfo,
-			"auth_info", authInfo,
-		)
-	}
-}
-
 // GetStatusCode: キャプチャされたステータスコードを取得
 func (rw *ResponseWriterWrapper) GetStatusCode() int {
 	return rw.statusCode

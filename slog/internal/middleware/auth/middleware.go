@@ -16,8 +16,8 @@ func WithAuth(authorizer Authorizer, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// 検証中のため意図的にエラーを返す
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
+		// http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		// return
 
 		authInfo, err := authorizer.Authorize(r.Context(), r)
 		if err != nil {
