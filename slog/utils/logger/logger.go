@@ -5,19 +5,36 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"sync"
+)
+
+var (
+	globalLogger *Logger
+	once         sync.Once
 )
 
 // New: create new logger instance
 func New() *Logger {
-	handler := slog.NewJSONHandler(
-		os.Stdout, &slog.HandlerOptions{
-			Level: slog.LevelDebug,
-		},
-	)
+	once.Do(func() {
+		handler := slog.NewJSONHandler(
+			os.Stdout, &slog.HandlerOptions{
+				Level: slog.LevelDebug,
+			},
+		)
 
-	return &Logger{
-		Logger: slog.New(handler),
+		globalLogger = &Logger{
+			Logger: slog.New(handler),
+		}
+	})
+	return globalLogger
+}
+
+// GetLogger: get global logger instance
+func GetLogger() *Logger {
+	if globalLogger == nil {
+		return New()
 	}
+	return globalLogger
 }
 
 // DebugContext: output debug log

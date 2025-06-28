@@ -40,7 +40,7 @@ func RequestMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			)
 
 			// Log request completion
-			logger.New().LogRequestCompletion(
+			logger.GetLogger().LogRequestCompletion(
 				*wrappedWriter.GetContext(),
 				wrappedWriter.GetStatusCode(),
 				httpInfo,
