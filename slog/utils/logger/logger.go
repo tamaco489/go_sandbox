@@ -201,59 +201,46 @@ func GetStatusCode(ctx context.Context) (int, bool) {
 	return statusCode, ok
 }
 
-// ResponseWriterWrapper: ステータスコードをキャプチャし、ログを出力するレスポンスライターラッパー
+// ResponseWriterWrapper: ステータスコードとコンテキストを記録するラッパー
 type ResponseWriterWrapper struct {
 	http.ResponseWriter
 	statusCode int
-	ctx        context.Context
-	req        *http.Request
-	startTime  time.Time
-	systemInfo SystemInfo
-	logged     bool // ログ出力済みフラグ
+	ctx        *context.Context
 }
 
-// NewResponseWriterWrapper: 新しいレスポンスライターラッパーを作成
-func NewResponseWriterWrapper(w http.ResponseWriter, ctx context.Context, req *http.Request, startTime time.Time, systemInfo SystemInfo) *ResponseWriterWrapper {
+// NewResponseWriterWrapper: 新しいResponseWriterWrapperを作成
+func NewResponseWriterWrapper(w http.ResponseWriter) *ResponseWriterWrapper {
 	defaultStatusCode := http.StatusOK
 	return &ResponseWriterWrapper{
 		ResponseWriter: w,
 		statusCode:     defaultStatusCode,
-		ctx:            ctx,
-		req:            req,
-		startTime:      startTime,
-		systemInfo:     systemInfo,
-		logged:         false,
 	}
 }
 
-// WriteHeader: ステータスコードをキャプチャして設定
 func (rw *ResponseWriterWrapper) WriteHeader(statusCode int) {
 	rw.statusCode = statusCode
 	rw.ResponseWriter.WriteHeader(statusCode)
-
-	// ログ出力は無効化（ログミドルウェアで出力するため）
-	// if !rw.logged {
-	// 	rw.logRequest(statusCode)
-	// 	rw.logged = true
-	// }
 }
 
-// Write: レスポンスボディを書き込み
 func (rw *ResponseWriterWrapper) Write(data []byte) (int, error) {
-	// WriteHeaderが呼ばれていない場合は、デフォルトのステータスコードを設定
-	if rw.statusCode == http.StatusOK {
-		rw.statusCode = http.StatusOK
+	if rw.statusCode == 0 {
+		rw.statusCode = 200
 	}
-
 	return rw.ResponseWriter.Write(data)
 }
 
-// GetStatusCode: キャプチャされたステータスコードを取得
-func (rw *ResponseWriterWrapper) GetStatusCode() int {
-	return rw.statusCode
+func (rw *ResponseWriterWrapper) UpdateContext(ctx context.Context) {
+	if rw.ctx == nil {
+		rw.ctx = &ctx
+	} else {
+		*rw.ctx = ctx
+	}
 }
 
-// GetContext: コンテキストを取得
-func (rw *ResponseWriterWrapper) GetContext() context.Context {
+func (rw *ResponseWriterWrapper) GetContext() *context.Context {
 	return rw.ctx
+}
+
+func (rw *ResponseWriterWrapper) GetStatusCode() int {
+	return rw.statusCode
 }

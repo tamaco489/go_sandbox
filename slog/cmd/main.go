@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"net/http"
 	"time"
@@ -9,29 +8,6 @@ import (
 	"github.com/tamaco489/go_sandbox/slog/internal/controller"
 	"github.com/tamaco489/go_sandbox/slog/utils/logger"
 )
-
-// ResponseWriterWrapper: ステータスコードを記録するラッパー
-type ResponseWriterWrapper struct {
-	http.ResponseWriter
-	statusCode int
-	ctx        *context.Context
-}
-
-func (rw *ResponseWriterWrapper) WriteHeader(statusCode int) {
-	rw.statusCode = statusCode
-	rw.ResponseWriter.WriteHeader(statusCode)
-}
-
-func (rw *ResponseWriterWrapper) Write(data []byte) (int, error) {
-	if rw.statusCode == 0 {
-		rw.statusCode = 200
-	}
-	return rw.ResponseWriter.Write(data)
-}
-
-func (rw *ResponseWriterWrapper) UpdateContext(ctx context.Context) {
-	*rw.ctx = ctx
-}
 
 // requestMiddleware: リクエストの開始と終了を管理するミドルウェア
 func requestMiddleware(next http.HandlerFunc) http.HandlerFunc {
@@ -55,17 +31,16 @@ func requestMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		r = r.WithContext(ctx)
 
 		// ResponseWriterWrapperを作成（コンテキストのポインタを保持）
-		wrappedWriter := &ResponseWriterWrapper{
-			ResponseWriter: w,
-			ctx:            &ctx,
-		}
+		wrappedWriter := logger.NewResponseWriterWrapper(w)
+		// ctxフィールドを初期化してからUpdateContextを呼ぶ
+		wrappedWriter.UpdateContext(ctx)
 
 		// deferでリクエスト終了時のログ出力
 		defer func() {
-			// 最新のコンテキストから認可情報を取得
-			finalAuthInfo, _ := logger.GetAuthorizedInfo(*wrappedWriter.ctx)
-			systemInfo, _ := logger.GetSystemInfo(*wrappedWriter.ctx)
-			requestID, _ := logger.GetRequestID(*wrappedWriter.ctx)
+			// wrappedWriter.ctxから最新のコンテキストを取得（認可ミドルウェアで更新されたもの）
+			finalAuthInfo, _ := logger.GetAuthorizedInfo(*wrappedWriter.GetContext())
+			systemInfo, _ := logger.GetSystemInfo(*wrappedWriter.GetContext())
+			requestID, _ := logger.GetRequestID(*wrappedWriter.GetContext())
 
 			// 処理時間を計算
 			latency := time.Since(startTime)
@@ -74,7 +49,7 @@ func requestMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			httpInfo := logger.HTTPRequestInfo{
 				Method:     r.Method,
 				Path:       r.URL.Path,
-				Status:     wrappedWriter.statusCode,
+				Status:     wrappedWriter.GetStatusCode(),
 				Latency:    latency.String(),
 				UserAgent:  r.UserAgent(),
 				Referer:    r.Referer(),
@@ -83,8 +58,8 @@ func requestMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			}
 
 			// ログ出力
-			logger.GetLogger().InfoContext(*wrappedWriter.ctx, "Request completed",
-				"status_code", wrappedWriter.statusCode,
+			logger.GetLogger().InfoContext(*wrappedWriter.GetContext(), "Request completed",
+				"status_code", wrappedWriter.GetStatusCode(),
 				"http_info", httpInfo,
 				"system_info", systemInfo,
 				"auth_info", finalAuthInfo,

@@ -58,14 +58,15 @@ func WithLogging(next http.HandlerFunc) http.HandlerFunc {
 		r = r.WithContext(ctx)
 
 		// レスポンスライターをラップしてステータスコードをキャプチャ
-		wrappedWriter := logger.NewResponseWriterWrapper(w, ctx, r, startTime, systemInfo)
+		wrappedWriter := logger.NewResponseWriterWrapper(w)
+		wrappedWriter.UpdateContext(ctx)
 
 		// 次のハンドラーを実行
 		next.ServeHTTP(wrappedWriter, r)
 
 		// ハンドラー実行後にログ出力（認可情報を含む）
 		statusCode := wrappedWriter.GetStatusCode()
-		
+
 		// 現在のリクエストのコンテキストから最新の認可情報を取得
 		// 注意: この時点でr.Context()は認可ミドルウェアで更新されたコンテキストを含んでいる
 		currentReq := r
