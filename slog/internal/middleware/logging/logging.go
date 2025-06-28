@@ -19,8 +19,6 @@ func RequestMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 		// Create ResponseWriterWrapper (keep context pointer)
 		wrappedWriter := logger.NewResponseWriterWrapper(w)
-
-		// Initialize ctx field and then call UpdateContext
 		wrappedWriter.UpdateContext(r.Context())
 
 		// defer for request end logging

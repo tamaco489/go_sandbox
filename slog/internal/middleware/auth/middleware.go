@@ -32,7 +32,7 @@ func WithAuth(authorizer Authorizer, next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		// Set authorized information to context
-		ctx := logger.SetAuthorizedInfoCtx(r.Context(), *authInfo)
+		ctx := logger.SetAuthorizedInfoContext(r.Context(), *authInfo)
 
 		// Update request context
 		r = r.WithContext(ctx)

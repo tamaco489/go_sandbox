@@ -15,8 +15,8 @@ func NewAuth() *Auth {
 
 // Authorize checks if the request is authorized
 func (a *Auth) Authorize(ctx context.Context, r *http.Request) (*logger.AuthorizedInfo, error) {
-	// NOTE: テスト用に認可成功を返す
-	// 実際の実装では、JWTトークンの検証やデータベースでの認可チェックを行う
+	// NOTE: Return authorization success for testing
+	// In a real application, this would be implemented with JWT token validation and database authorization checks
 
 	return &logger.AuthorizedInfo{
 		Role:     "user",
