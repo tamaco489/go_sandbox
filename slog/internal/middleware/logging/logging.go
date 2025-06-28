@@ -15,7 +15,6 @@ func logRequestCompletion(ctx context.Context, statusCode int, httpInfo logger.H
 
 	// Create structured log attributes using structures directly
 	attrs := []any{
-		"status_code", statusCode,
 		"http_info", httpInfo,
 		"system_info", systemInfo,
 		"auth_info", authInfo,
