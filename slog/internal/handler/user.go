@@ -13,12 +13,10 @@ type UserMeResponse struct {
 func HandleUserMe(w http.ResponseWriter, r *http.Request) {
 	base := NewBaseHandler()
 
-	// todo: ここでも意図的に4xxを返す
-	// http.Error(w, "test", http.StatusBadRequest)
-	// return
-
 	// For now, return a mock UID
 	// In a real application, this would be extracted from authentication context
-	response := UserMeResponse{UID: "864c857e-bc03-7b09-5b8f-750d312636c3"}
+	response := UserMeResponse{
+		UID: "864c857e-bc03-7b09-5b8f-750d312636c3",
+	}
 	base.WriteJSONResponse(w, r, http.StatusOK, response)
 }

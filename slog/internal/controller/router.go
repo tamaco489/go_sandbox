@@ -20,11 +20,15 @@ func NewRouter() *Router {
 }
 
 func (r *Router) RegisterRoutes() {
-	// ヘルスチェックは認可不要
+	// health check
 	r.mux.HandleFunc("/api/v1/health", handler.HandleHealth)
 
-	// ユーザー情報は認可が必要
+	// public routes
+	r.mux.HandleFunc("/api/v1/products/{id}", handler.HandleProductByID)
+
+	// pricate routes
 	r.mux.HandleFunc("/api/v1/users/me", auth.WithAuth(r.authorizer, handler.HandleUserMe))
+	r.mux.HandleFunc("/api/v1/users/profile/me", auth.WithAuth(r.authorizer, handler.HandleUserProfileMe))
 }
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {

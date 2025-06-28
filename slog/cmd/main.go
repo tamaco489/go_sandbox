@@ -32,6 +32,7 @@ func requestMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 		// ResponseWriterWrapperを作成（コンテキストのポインタを保持）
 		wrappedWriter := logger.NewResponseWriterWrapper(w)
+
 		// ctxフィールドを初期化してからUpdateContextを呼ぶ
 		wrappedWriter.UpdateContext(ctx)
 

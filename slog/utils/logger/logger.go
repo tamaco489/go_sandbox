@@ -143,9 +143,6 @@ const (
 	statusCodeKey     contextKey = "status_code"
 )
 
-// Context: コンテキストの型エイリアス
-type Context = context.Context
-
 // WithSystemInfo: コンテキストにシステム情報を設定
 func WithSystemInfo(ctx context.Context, info SystemInfo) context.Context {
 	return context.WithValue(ctx, systemInfoKey, info)
@@ -155,11 +152,6 @@ func WithSystemInfo(ctx context.Context, info SystemInfo) context.Context {
 func GetSystemInfo(ctx context.Context) (SystemInfo, bool) {
 	info, ok := ctx.Value(systemInfoKey).(SystemInfo)
 	return info, ok
-}
-
-// WithValue: コンテキストに値を設定
-func WithValue(ctx context.Context, key interface{}, val interface{}) context.Context {
-	return context.WithValue(ctx, key, val)
 }
 
 // WithAuthorizedInfo: コンテキストに認可情報を設定
@@ -193,12 +185,6 @@ func GetRequestID(ctx context.Context) (string, bool) {
 // WithStatusCode: コンテキストにHTTPステータスコードを設定
 func WithStatusCode(ctx context.Context, statusCode int) context.Context {
 	return context.WithValue(ctx, statusCodeKey, statusCode)
-}
-
-// GetStatusCode: コンテキストからHTTPステータスコードを取得
-func GetStatusCode(ctx context.Context) (int, bool) {
-	statusCode, ok := ctx.Value(statusCodeKey).(int)
-	return statusCode, ok
 }
 
 // ResponseWriterWrapper: ステータスコードとコンテキストを記録するラッパー
