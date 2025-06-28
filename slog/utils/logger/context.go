@@ -9,9 +9,9 @@ import (
 type contextKey string
 
 const (
-	authorizedInfoKey contextKey = "authorized_info"
 	requestIDKey      contextKey = "request_id"
 	systemInfoKey     contextKey = "system_info"
+	authorizedInfoKey contextKey = "authorized_info"
 	statusCodeKey     contextKey = "status_code"
 )
 

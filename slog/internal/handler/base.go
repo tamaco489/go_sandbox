@@ -7,32 +7,32 @@ import (
 	"github.com/tamaco489/go_sandbox/slog/utils/logger"
 )
 
-// BaseHandler: ハンドラーのベースクラス
+// BaseHandler: base handler
 type BaseHandler struct{}
 
-// NewBaseHandler: 新しいベースハンドラーを作成
+// NewBaseHandler: create new base handler
 func NewBaseHandler() *BaseHandler {
 	return &BaseHandler{}
 }
 
-// SetStatusCode: ステータスコードをコンテキストに設定
+// SetStatusCode: set status code to context
 func (h *BaseHandler) SetStatusCode(r *http.Request, statusCode int) *http.Request {
 	ctx := logger.SetStatusCodeContext(r.Context(), statusCode)
 	return r.WithContext(ctx)
 }
 
-// WriteJSONResponse: JSONレスポンスを書き込み、ステータスコードを設定
+// WriteJSONResponse: write JSON response and set status code
 func (h *BaseHandler) WriteJSONResponse(w http.ResponseWriter, r *http.Request, statusCode int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(statusCode)
 
-	// ステータスコードをコンテキストに設定
+	// set status code to context
 	ctx := logger.SetStatusCodeContext(r.Context(), statusCode)
 	r = r.WithContext(ctx)
 
 	jsonData, err := json.Marshal(data)
 	if err != nil {
-		// エラー時のステータスコードをコンテキストに設定
+		// set status code to context
 		ctx = logger.SetStatusCodeContext(r.Context(), http.StatusInternalServerError)
 		r = r.WithContext(ctx)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -42,9 +42,9 @@ func (h *BaseHandler) WriteJSONResponse(w http.ResponseWriter, r *http.Request, 
 	w.Write(jsonData)
 }
 
-// WriteErrorResponse: エラーレスポンスを書き込み、ステータスコードを設定
+// WriteErrorResponse: write error response and set status code
 func (h *BaseHandler) WriteErrorResponse(w http.ResponseWriter, r *http.Request, statusCode int, message string) {
-	// エラー時のステータスコードをコンテキストに設定
+	// set status code to context
 	r = h.SetStatusCode(r, statusCode)
 	http.Error(w, message, statusCode)
 }
