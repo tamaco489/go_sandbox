@@ -21,11 +21,13 @@ func NewResponseWriterWrapper(w http.ResponseWriter) *ResponseWriterWrapper {
 	}
 }
 
+// WriteHeader: write header to ResponseWriterWrapper
 func (rw *ResponseWriterWrapper) WriteHeader(statusCode int) {
 	rw.statusCode = statusCode
 	rw.ResponseWriter.WriteHeader(statusCode)
 }
 
+// Write: write data to ResponseWriterWrapper
 func (rw *ResponseWriterWrapper) Write(data []byte) (int, error) {
 	if rw.statusCode == 0 {
 		rw.statusCode = 200
@@ -33,6 +35,7 @@ func (rw *ResponseWriterWrapper) Write(data []byte) (int, error) {
 	return rw.ResponseWriter.Write(data)
 }
 
+// UpdateContext: update context in ResponseWriterWrapper
 func (rw *ResponseWriterWrapper) UpdateContext(ctx context.Context) {
 	if rw.ctx == nil {
 		rw.ctx = &ctx
@@ -41,10 +44,12 @@ func (rw *ResponseWriterWrapper) UpdateContext(ctx context.Context) {
 	}
 }
 
+// GetContext: get context from ResponseWriterWrapper
 func (rw *ResponseWriterWrapper) GetContext() *context.Context {
 	return rw.ctx
 }
 
+// GetStatusCode: get status code from ResponseWriterWrapper
 func (rw *ResponseWriterWrapper) GetStatusCode() int {
 	return rw.statusCode
 }
