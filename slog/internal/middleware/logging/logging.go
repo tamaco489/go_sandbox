@@ -9,25 +9,25 @@ import (
 	"github.com/tamaco489/go_sandbox/slog/utils/logger"
 )
 
-// LoggingRouter: ログ処理を含むカスタムルーター
-type LoggingRouter struct {
+// LogRouter: ログ処理を含むカスタムルーター
+type LogRouter struct {
 	mux *http.ServeMux
 }
 
-// NewLoggingRouter: 新しいログルーターを作成
-func NewLoggingRouter() *LoggingRouter {
-	return &LoggingRouter{
+// NewLogRouter: 新しいログルーターを作成
+func NewLogRouter() *LogRouter {
+	return &LogRouter{
 		mux: http.NewServeMux(),
 	}
 }
 
 // HandleFunc: ハンドラーを登録
-func (lr *LoggingRouter) HandleFunc(pattern string, handler http.HandlerFunc) {
+func (lr *LogRouter) HandleFunc(pattern string, handler http.HandlerFunc) {
 	lr.mux.HandleFunc(pattern, handler)
 }
 
 // ServeHTTP: HTTPリクエストを処理し、ログを出力
-func (lr *LoggingRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (lr *LogRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// リクエスト開始時刻を記録
 	startTime := time.Now()
 

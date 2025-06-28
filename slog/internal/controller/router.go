@@ -9,13 +9,13 @@ import (
 )
 
 type Router struct {
-	logRouter  *logging.LoggingRouter
+	logRouter  *logging.LogRouter
 	authorizer auth.Authorizer
 }
 
 func NewRouter() *Router {
 	return &Router{
-		logRouter:  logging.NewLoggingRouter(),
+		logRouter:  logging.NewLogRouter(),
 		authorizer: auth.NewAuth(),
 	}
 }
