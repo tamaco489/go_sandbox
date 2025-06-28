@@ -22,3 +22,5 @@ get_profile_me:
 
 get_product_by_id:
 	curl -i -X GET http://localhost:8080/api/v1/products/10010000
+
+all_requests: get_health get_me get_profile_me get_product_by_id
