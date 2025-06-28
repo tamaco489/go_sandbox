@@ -11,47 +11,38 @@ type Authorizer interface {
 	Authorize(ctx context.Context, r *http.Request) (*logger.AuthorizedInfo, error)
 }
 
-// WithAuth: 認可ミドルウェア
+// WithAuth: Authorization middleware
 func WithAuth(authorizer Authorizer, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		logger.GetLogger().DebugContext(r.Context(), "認可ミドルウェア開始", "path", r.URL.Path)
 
-		// ResponseWriterWrapperかどうかチェック
+		// Check if it's a ResponseWriterWrapper
 		wrappedWriter, isWrapped := w.(*logger.ResponseWriterWrapper)
 
-		// NOTE: テスト用に認可失敗を返す
+		// NOTE: Return authorization failure for testing
 		// authInfo, err := authorizer.Authorize(r.Context(), r)
-		// logger.GetLogger().DebugContext(r.Context(), "認可失敗", "error", fmt.Errorf("認可失敗"))
-		// http.Error(w, fmt.Errorf("認可失敗").Error(), http.StatusUnauthorized)
+		// logger.GetLogger().DebugContext(r.Context(), "Authorization failed", "error", fmt.Errorf("Authorization failed"))
+		// http.Error(w, fmt.Errorf("Authorization failed").Error(), http.StatusUnauthorized)
 		// return
 
-		// 認可処理を実行
+		// Execute authorization process
 		authInfo, err := authorizer.Authorize(r.Context(), r)
 		if err != nil {
-			logger.GetLogger().DebugContext(r.Context(), "認可失敗", "error", err.Error())
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
 
-		logger.GetLogger().DebugContext(r.Context(), "認可成功", "auth_info", authInfo)
-
-		// 認可情報をコンテキストに設定
+		// Set authorized information to context
 		ctx := logger.WithAuthorizedInfo(r.Context(), *authInfo)
 
-		// リクエストのコンテキストを更新
+		// Update request context
 		r = r.WithContext(ctx)
 
-		// ResponseWriterWrapperの場合はコンテキストも更新
+		// If it's a ResponseWriterWrapper, update the context
 		if isWrapped {
-			logger.GetLogger().DebugContext(ctx, "ResponseWriterWrapperのコンテキストを更新します", "auth_info", authInfo)
 			wrappedWriter.UpdateContext(ctx)
-		} else {
-			logger.GetLogger().DebugContext(ctx, "ResponseWriterWrapperではありません", "auth_info", authInfo)
 		}
 
-		logger.GetLogger().DebugContext(ctx, "認可情報をコンテキストに設定しました", "auth_info", authInfo)
-
-		// 更新されたリクエストを次のハンドラーに渡す
+		// Pass the updated request to the next handler
 		next.ServeHTTP(w, r)
 	}
 }

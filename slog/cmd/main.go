@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/tamaco489/go_sandbox/slog/internal/controller"
+	"github.com/tamaco489/go_sandbox/slog/utils/configuration"
 	"github.com/tamaco489/go_sandbox/slog/utils/logger"
 )
 
@@ -19,7 +20,7 @@ func requestMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		ctx := logger.SetRequestID(r.Context())
 
 		// システム情報を初期化
-		env := "dev" // TODO: 設定から取得
+		env := configuration.GetEnvironment()
 		systemInfo := logger.NewSystemInfo(env)
 
 		// 初期の認可情報を設定
