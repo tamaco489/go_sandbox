@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -12,13 +11,7 @@ type HealthResponse struct {
 
 // HandleHealth handles health check API
 func HandleHealth(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
+	base := NewBaseHandler()
 	response := HealthResponse{Message: "ok"}
-	jsonData, err := json.Marshal(response)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	w.Write(jsonData)
+	base.WriteJSONResponse(w, r, http.StatusOK, response)
 }

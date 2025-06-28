@@ -17,6 +17,10 @@ func WithAuth(authorizer Authorizer, next http.HandlerFunc) http.HandlerFunc {
 		// 認可処理を実行
 		authInfo, err := authorizer.Authorize(r.Context(), r)
 		if err != nil {
+			// エラー時にステータスコードをコンテキストに設定
+			ctx := logger.WithStatusCode(r.Context(), http.StatusUnauthorized)
+			r = r.WithContext(ctx)
+
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}

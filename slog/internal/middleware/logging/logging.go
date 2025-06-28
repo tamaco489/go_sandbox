@@ -32,7 +32,7 @@ func (lr *LogRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 
 	// リクエストIDを生成してコンテキストに設定
-	ctx := logger.GenerateAndSetRequestID(r.Context())
+	ctx := logger.SetRequestID(r.Context())
 
 	// システム情報を初期化
 	env := configuration.GetEnvironment()
@@ -48,17 +48,34 @@ func (lr *LogRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// 更新されたコンテキストでリクエストを更新
 	r = r.WithContext(ctx)
 
+	// レスポンスライターをラップしてステータスコードをキャプチャ
+	wrappedWriter := logger.NewResponseWriterWrapper(w, ctx)
+
 	// 元のServeHTTPを実行
-	lr.mux.ServeHTTP(w, r)
+	lr.mux.ServeHTTP(wrappedWriter, r)
+
+	// キャプチャされたステータスコードをコンテキストに設定
+	statusCode := wrappedWriter.GetStatusCode()
+	ctx = logger.WithStatusCode(ctx, statusCode)
+
+	// 更新されたコンテキストでリクエストを更新
+	r = r.WithContext(ctx)
 
 	// ハンドラー実行後にログ出力
-	logHTTPRequest(r, startTime, systemInfo, authInfo)
+	logHTTPRequest(r, startTime, systemInfo, authInfo, statusCode)
 }
 
 // logHTTPRequest: HTTPリクエストのログを出力
-func logHTTPRequest(r *http.Request, startTime time.Time, systemInfo logger.SystemInfo, authInfo logger.AuthorizedInfo) {
-	// レスポンスのステータスコードを取得（簡易的な実装）
-	statusCode := 200 // デフォルト値
+func logHTTPRequest(r *http.Request, startTime time.Time, systemInfo logger.SystemInfo, authInfo logger.AuthorizedInfo, statusCode int) {
+	// コンテキストから最新の認可情報を取得
+	if latestAuthInfo, ok := logger.GetAuthorizedInfo(r.Context()); ok {
+		authInfo = latestAuthInfo
+	}
+
+	// コンテキストからステータスコードを取得（フォールバックとして引数を使用）
+	if ctxStatusCode, ok := logger.GetStatusCode(r.Context()); ok {
+		statusCode = ctxStatusCode
+	}
 
 	// HTTP情報を作成
 	httpInfo := logger.NewInitialHTTPRequestInfo(r, startTime, statusCode)

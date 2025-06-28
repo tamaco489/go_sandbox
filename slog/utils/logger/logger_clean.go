@@ -85,17 +85,6 @@ func NewInitialAuthorizedInfo() AuthorizedInfo {
 	}
 }
 
-// LogEntry: ログエントリを保持する構造体
-type LogEntry struct {
-	Timestamp      time.Time       `json:"timestamp"`
-	Level          string          `json:"level"`
-	System         SystemInfo      `json:"system"`
-	HTTP           HTTPRequestInfo `json:"http"`
-	AuthorizedInfo AuthorizedInfo  `json:"authorized_info"`
-	Error          string          `json:"error"`
-	Message        string          `json:"message"`
-}
-
 // globalLogger: ロガーのグローバルインスタンス
 var globalLogger *Logger
 
@@ -151,6 +140,7 @@ const (
 	authorizedInfoKey contextKey = "authorized_info"
 	requestIDKey      contextKey = "request_id"
 	systemInfoKey     contextKey = "system_info"
+	statusCodeKey     contextKey = "status_code"
 )
 
 // Context: コンテキストの型エイリアス
@@ -188,8 +178,8 @@ func WithRequestID(ctx context.Context, requestID string) context.Context {
 	return context.WithValue(ctx, requestIDKey, requestID)
 }
 
-// GenerateAndSetRequestID: UUIDを生成してコンテキストに設定
-func GenerateAndSetRequestID(ctx context.Context) context.Context {
+// SetRequestID: UUIDを生成してコンテキストに設定
+func SetRequestID(ctx context.Context) context.Context {
 	requestID := uuid.New().String()
 	return WithRequestID(ctx, requestID)
 }
@@ -200,33 +190,46 @@ func GetRequestID(ctx context.Context) (string, bool) {
 	return requestID, ok
 }
 
-// HTTPRequest: HTTPリクエスト情報をログに出力
-func (l *Logger) HTTPRequest(ctx context.Context, entry LogEntry) {
-	args := []any{
-		"timestamp", entry.Timestamp.Format(time.RFC3339),
-		"level", entry.Level,
-		"message", entry.Message,
-		"system", entry.System,
-		"http", entry.HTTP,
-		"authorized_info", entry.AuthorizedInfo,
-	}
+// WithStatusCode: コンテキストにHTTPステータスコードを設定
+func WithStatusCode(ctx context.Context, statusCode int) context.Context {
+	return context.WithValue(ctx, statusCodeKey, statusCode)
+}
 
-	if entry.Error != "" {
-		args = append(args, "error", entry.Error)
-	}
+// GetStatusCode: コンテキストからHTTPステータスコードを取得
+func GetStatusCode(ctx context.Context) (int, bool) {
+	statusCode, ok := ctx.Value(statusCodeKey).(int)
+	return statusCode, ok
+}
 
-	switch entry.Level {
-	case "debug":
-		l.DebugContext(ctx, entry.Message, args...)
-	case "info":
-		l.InfoContext(ctx, entry.Message, args...)
-	case "warn":
-		l.WarnContext(ctx, entry.Message, args...)
-	case "error":
-		l.ErrorContext(ctx, entry.Message, args...)
-	case "fatal":
-		l.FatalContext(ctx, entry.Message, args...)
-	default:
-		l.InfoContext(ctx, entry.Message, args...)
+// ResponseWriterWrapper: ステータスコードをキャプチャするレスポンスライターラッパー
+type ResponseWriterWrapper struct {
+	http.ResponseWriter
+	statusCode int
+	ctx        context.Context
+}
+
+// NewResponseWriterWrapper: 新しいレスポンスライターラッパーを作成
+func NewResponseWriterWrapper(w http.ResponseWriter, ctx context.Context) *ResponseWriterWrapper {
+	defaultStatusCode := http.StatusOK
+	return &ResponseWriterWrapper{
+		ResponseWriter: w,
+		statusCode:     defaultStatusCode,
+		ctx:            ctx,
 	}
+}
+
+// WriteHeader: ステータスコードをキャプチャして設定
+func (rw *ResponseWriterWrapper) WriteHeader(statusCode int) {
+	rw.statusCode = statusCode
+	rw.ResponseWriter.WriteHeader(statusCode)
+}
+
+// GetStatusCode: キャプチャされたステータスコードを取得
+func (rw *ResponseWriterWrapper) GetStatusCode() int {
+	return rw.statusCode
+}
+
+// GetContext: コンテキストを取得
+func (rw *ResponseWriterWrapper) GetContext() context.Context {
+	return rw.ctx
 }
