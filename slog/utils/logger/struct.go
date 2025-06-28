@@ -3,6 +3,7 @@ package logger
 import (
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 )
 
@@ -28,18 +29,6 @@ func NewSystemInfo(env string) SystemInfo {
 	}
 }
 
-// HTTPRequestInfo: HTTP request information
-type HTTPRequestInfo struct {
-	Method     string `json:"method"`
-	Path       string `json:"path"`
-	Status     int    `json:"status"`
-	Latency    string `json:"latency"`
-	UserAgent  string `json:"user_agent"`
-	Referer    string `json:"referer"`
-	RemoteAddr string `json:"remote_addr"`
-	RequestID  string `json:"request_id"`
-}
-
 // AuthorizedInfo: Authorized information
 type AuthorizedInfo struct {
 	Role     string `json:"role"`
@@ -53,5 +42,31 @@ func NewInitialAuthorizedInfo() AuthorizedInfo {
 		Role:     "anonymous",
 		TenantID: "default",
 		MemberID: "unknown",
+	}
+}
+
+// HTTPRequestInfo: HTTP request information
+type HTTPRequestInfo struct {
+	Method     string `json:"method"`
+	Path       string `json:"path"`
+	Status     int    `json:"status"`
+	Latency    string `json:"latency"`
+	UserAgent  string `json:"user_agent"`
+	Referer    string `json:"referer"`
+	RemoteAddr string `json:"remote_addr"`
+	RequestID  string `json:"request_id"`
+}
+
+// NewHTTPRequestInfo: Create new HTTPRequestInfo instance
+func NewHTTPRequestInfo(r *http.Request, statusCode int, latency string, requestID string) HTTPRequestInfo {
+	return HTTPRequestInfo{
+		Method:     r.Method,
+		Path:       r.URL.Path,
+		Status:     statusCode,
+		Latency:    latency,
+		UserAgent:  r.UserAgent(),
+		Referer:    r.Referer(),
+		RemoteAddr: r.RemoteAddr,
+		RequestID:  requestID,
 	}
 }

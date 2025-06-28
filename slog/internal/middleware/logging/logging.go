@@ -26,31 +26,24 @@ func RequestMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		// defer for request end logging
 		defer func() {
 			// Get latest context from wrappedWriter.ctx (updated by authorization middleware)
-			authorizedInfo, _ := logger.GetAuthorizedInfoContext(*wrappedWriter.GetContext())
-			systemInfo, _ := logger.GetSystemInfoContext(*wrappedWriter.GetContext())
 			requestID, _ := logger.GetRequestIDContext(*wrappedWriter.GetContext())
+			systemInfo, _ := logger.GetSystemInfoContext(*wrappedWriter.GetContext())
+			authorizedInfo, _ := logger.GetAuthorizedInfoContext(*wrappedWriter.GetContext())
 
 			// Calculate processing time
 			latency := time.Since(startTime)
 
 			// Create HTTP information
-			httpInfo := logger.HTTPRequestInfo{
-				Method:     r.Method,
-				Path:       r.URL.Path,
-				Status:     wrappedWriter.GetStatusCode(),
-				Latency:    latency.String(),
-				UserAgent:  r.UserAgent(),
-				Referer:    r.Referer(),
-				RemoteAddr: r.RemoteAddr,
-				RequestID:  requestID,
-			}
-
-			// Log request completion with simplified structure
-			ctx := *wrappedWriter.GetContext()
+			httpInfo := logger.NewHTTPRequestInfo(
+				r,
+				wrappedWriter.GetStatusCode(),
+				latency.String(),
+				requestID,
+			)
 
 			// Log request completion
 			logger.New().LogRequestCompletion(
-				ctx,
+				*wrappedWriter.GetContext(),
 				wrappedWriter.GetStatusCode(),
 				httpInfo,
 				systemInfo,
