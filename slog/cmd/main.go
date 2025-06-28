@@ -57,13 +57,41 @@ func requestMiddleware(next http.HandlerFunc) http.HandlerFunc {
 				RequestID:  requestID,
 			}
 
-			// ログ出力
-			logger.GetLogger().InfoContext(*wrappedWriter.GetContext(), "Request completed",
-				"status_code", wrappedWriter.GetStatusCode(),
-				"http_info", httpInfo,
-				"system_info", systemInfo,
-				"auth_info", finalAuthInfo,
-			)
+			// ステータスコードに応じてログレベルを決定
+			statusCode := wrappedWriter.GetStatusCode()
+			switch {
+			// status: 5xx, level: error
+			case statusCode >= http.StatusInternalServerError:
+				logger.GetLogger().ErrorContext(*wrappedWriter.GetContext(), "Request completed",
+					"status_code", statusCode,
+					"http_info", httpInfo,
+					"system_info", systemInfo,
+					"auth_info", finalAuthInfo,
+				)
+			// status: 4xx, level: warn
+			case statusCode >= http.StatusBadRequest:
+				logger.GetLogger().WarnContext(*wrappedWriter.GetContext(), "Request completed",
+					"status_code", statusCode,
+					"http_info", httpInfo,
+					"system_info", systemInfo,
+					"auth_info", finalAuthInfo,
+				)
+			// status: 2xx, level: info
+			case statusCode >= http.StatusOK && statusCode < http.StatusBadRequest:
+				logger.GetLogger().InfoContext(*wrappedWriter.GetContext(), "Request completed",
+					"status_code", statusCode,
+					"http_info", httpInfo,
+					"system_info", systemInfo,
+					"auth_info", finalAuthInfo,
+				)
+			default:
+				logger.GetLogger().InfoContext(*wrappedWriter.GetContext(), "Request completed",
+					"status_code", statusCode,
+					"http_info", httpInfo,
+					"system_info", systemInfo,
+					"auth_info", finalAuthInfo,
+				)
+			}
 		}()
 
 		// 次のハンドラーを実行

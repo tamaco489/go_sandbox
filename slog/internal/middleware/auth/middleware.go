@@ -19,6 +19,12 @@ func WithAuth(authorizer Authorizer, next http.HandlerFunc) http.HandlerFunc {
 		// ResponseWriterWrapperかどうかチェック
 		wrappedWriter, isWrapped := w.(*logger.ResponseWriterWrapper)
 
+		// NOTE: テスト用に認可失敗を返す
+		// authInfo, err := authorizer.Authorize(r.Context(), r)
+		// logger.GetLogger().DebugContext(r.Context(), "認可失敗", "error", fmt.Errorf("認可失敗"))
+		// http.Error(w, fmt.Errorf("認可失敗").Error(), http.StatusUnauthorized)
+		// return
+
 		// 認可処理を実行
 		authInfo, err := authorizer.Authorize(r.Context(), r)
 		if err != nil {
