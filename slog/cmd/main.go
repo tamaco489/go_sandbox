@@ -17,16 +17,16 @@ func requestMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		startTime := time.Now()
 
 		// リクエストIDを生成してコンテキストに設定
-		ctx := logger.SetRequestID(r.Context())
+		ctx := logger.SetRequestIDCtx(r.Context())
 
 		// システム情報を初期化
 		env := configuration.GetEnvironment()
 		systemInfo := logger.NewSystemInfo(env)
+		ctx = logger.SetSystemInfoCtx(ctx, systemInfo)
 
 		// 初期の認可情報を設定
 		authInfo := logger.NewInitialAuthorizedInfo()
-		ctx = logger.WithAuthorizedInfo(ctx, authInfo)
-		ctx = logger.WithSystemInfo(ctx, systemInfo)
+		ctx = logger.SetAuthorizedInfoCtx(ctx, authInfo)
 
 		// 更新されたコンテキストでリクエストを更新
 		r = r.WithContext(ctx)
@@ -40,9 +40,9 @@ func requestMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		// deferでリクエスト終了時のログ出力
 		defer func() {
 			// wrappedWriter.ctxから最新のコンテキストを取得（認可ミドルウェアで更新されたもの）
-			finalAuthInfo, _ := logger.GetAuthorizedInfo(*wrappedWriter.GetContext())
-			systemInfo, _ := logger.GetSystemInfo(*wrappedWriter.GetContext())
-			requestID, _ := logger.GetRequestID(*wrappedWriter.GetContext())
+			finalAuthInfo, _ := logger.GetAuthorizedInfoCtx(*wrappedWriter.GetContext())
+			systemInfo, _ := logger.GetSystemInfoCtx(*wrappedWriter.GetContext())
+			requestID, _ := logger.GetRequestIDCtx(*wrappedWriter.GetContext())
 
 			// 処理時間を計算
 			latency := time.Since(startTime)

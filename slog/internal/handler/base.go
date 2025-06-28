@@ -17,7 +17,7 @@ func NewBaseHandler() *BaseHandler {
 
 // SetStatusCode: ステータスコードをコンテキストに設定
 func (h *BaseHandler) SetStatusCode(r *http.Request, statusCode int) *http.Request {
-	ctx := logger.WithStatusCode(r.Context(), statusCode)
+	ctx := logger.SetStatusCodeCtx(r.Context(), statusCode)
 	return r.WithContext(ctx)
 }
 
@@ -27,13 +27,13 @@ func (h *BaseHandler) WriteJSONResponse(w http.ResponseWriter, r *http.Request, 
 	w.WriteHeader(statusCode)
 
 	// ステータスコードをコンテキストに設定
-	ctx := logger.WithStatusCode(r.Context(), statusCode)
+	ctx := logger.SetStatusCodeCtx(r.Context(), statusCode)
 	r = r.WithContext(ctx)
 
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		// エラー時のステータスコードをコンテキストに設定
-		ctx = logger.WithStatusCode(r.Context(), http.StatusInternalServerError)
+		ctx = logger.SetStatusCodeCtx(r.Context(), http.StatusInternalServerError)
 		r = r.WithContext(ctx)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
