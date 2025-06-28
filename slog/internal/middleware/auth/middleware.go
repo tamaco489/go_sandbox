@@ -16,8 +16,8 @@ func WithAuth(authorizer Authorizer, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// 検証中のため意図的にエラーを返す
-		// http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		// return
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
 
 		authInfo, err := authorizer.Authorize(r.Context(), r)
 		if err != nil {
@@ -28,13 +28,6 @@ func WithAuth(authorizer Authorizer, next http.HandlerFunc) http.HandlerFunc {
 		// 認可情報をコンテキストに更新
 		ctx := logger.WithAuthorizedInfo(r.Context(), *authInfo)
 		r = r.WithContext(ctx)
-
-		// 設定後のコンテキストから認可情報を取得して確認
-		if verifyAuthInfo, ok := logger.GetAuthorizedInfo(ctx); ok {
-			logger.GetLogger().DebugContext(ctx, "コンテキストから認可情報を確認", "auth_info", verifyAuthInfo)
-		} else {
-			logger.GetLogger().DebugContext(ctx, "コンテキストから認可情報を取得できませんでした")
-		}
 
 		// 更新されたリクエストを次のハンドラーに渡す
 		next.ServeHTTP(w, r)

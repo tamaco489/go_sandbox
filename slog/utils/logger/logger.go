@@ -230,7 +230,7 @@ func NewResponseWriterWrapper(w http.ResponseWriter, ctx context.Context, req *h
 func (rw *ResponseWriterWrapper) WriteHeader(statusCode int) {
 	rw.statusCode = statusCode
 	rw.ResponseWriter.WriteHeader(statusCode)
-	
+
 	// ログ出力は無効化（ログミドルウェアで出力するため）
 	// if !rw.logged {
 	// 	rw.logRequest(statusCode)
@@ -244,7 +244,7 @@ func (rw *ResponseWriterWrapper) Write(data []byte) (int, error) {
 	if rw.statusCode == http.StatusOK {
 		rw.statusCode = http.StatusOK
 	}
-	
+
 	return rw.ResponseWriter.Write(data)
 }
 
@@ -254,9 +254,6 @@ func (rw *ResponseWriterWrapper) logRequest(statusCode int) {
 	authInfo, ok := GetAuthorizedInfo(rw.req.Context())
 	if !ok {
 		authInfo = NewInitialAuthorizedInfo()
-		GetLogger().DebugContext(rw.req.Context(), "認可情報が見つからないため初期値を使用", "auth_info", authInfo)
-	} else {
-		GetLogger().DebugContext(rw.req.Context(), "認可情報を取得しました", "auth_info", authInfo)
 	}
 
 	// HTTP情報を作成
