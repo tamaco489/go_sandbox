@@ -7,9 +7,6 @@ import (
 	"os"
 )
 
-// globalLogger: global logger instance
-var globalLogger *Logger
-
 // New: create new logger instance
 func New() *Logger {
 	handler := slog.NewJSONHandler(
@@ -21,14 +18,6 @@ func New() *Logger {
 	return &Logger{
 		Logger: slog.New(handler),
 	}
-}
-
-// GetLogger: get global logger instance
-func GetLogger() *Logger {
-	if globalLogger == nil {
-		globalLogger = New()
-	}
-	return globalLogger
 }
 
 // DebugContext: output debug log
@@ -57,46 +46,28 @@ func (l *Logger) FatalContext(ctx context.Context, msg string, args ...any) {
 	os.Exit(1)
 }
 
-// ResponseWriterWrapper: wrapper to record status code and context
-type ResponseWriterWrapper struct {
-	http.ResponseWriter
-	statusCode int
-	ctx        *context.Context
-}
+// LogRequestCompletion: Log request completion with appropriate level based on status code
+func (l *Logger) LogRequestCompletion(ctx context.Context, statusCode int, httpInfo HTTPRequestInfo, systemInfo SystemInfo, authInfo AuthorizedInfo) {
 
-// NewResponseWriterWrapper: create new ResponseWriterWrapper
-func NewResponseWriterWrapper(w http.ResponseWriter) *ResponseWriterWrapper {
-	defaultStatusCode := http.StatusOK
-	return &ResponseWriterWrapper{
-		ResponseWriter: w,
-		statusCode:     defaultStatusCode,
+	// Create structured log attributes using structures directly
+	attrs := []any{
+		"http_info", httpInfo,
+		"system_info", systemInfo,
+		"auth_info", authInfo,
 	}
-}
 
-func (rw *ResponseWriterWrapper) WriteHeader(statusCode int) {
-	rw.statusCode = statusCode
-	rw.ResponseWriter.WriteHeader(statusCode)
-}
+	// Determine log level and log with appropriate method
+	switch {
+	// status: 5xx, level: error
+	case statusCode >= http.StatusInternalServerError:
+		l.ErrorContext(ctx, "Request completed", attrs...)
 
-func (rw *ResponseWriterWrapper) Write(data []byte) (int, error) {
-	if rw.statusCode == 0 {
-		rw.statusCode = 200
+	// status: 4xx, level: warn
+	case statusCode >= http.StatusBadRequest:
+		l.WarnContext(ctx, "Request completed", attrs...)
+
+	// status: 2xx, level: info
+	default:
+		l.InfoContext(ctx, "Request completed", attrs...)
 	}
-	return rw.ResponseWriter.Write(data)
-}
-
-func (rw *ResponseWriterWrapper) UpdateContext(ctx context.Context) {
-	if rw.ctx == nil {
-		rw.ctx = &ctx
-	} else {
-		*rw.ctx = ctx
-	}
-}
-
-func (rw *ResponseWriterWrapper) GetContext() *context.Context {
-	return rw.ctx
-}
-
-func (rw *ResponseWriterWrapper) GetStatusCode() int {
-	return rw.statusCode
 }

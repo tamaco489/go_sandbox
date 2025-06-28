@@ -1,40 +1,12 @@
 package logging
 
 import (
-	"context"
 	"net/http"
 	"time"
 
 	"github.com/tamaco489/go_sandbox/slog/utils/configuration"
 	"github.com/tamaco489/go_sandbox/slog/utils/logger"
 )
-
-// logRequestCompletion: Log request completion with appropriate level based on status code
-func logRequestCompletion(ctx context.Context, statusCode int, httpInfo logger.HTTPRequestInfo, systemInfo logger.SystemInfo, authInfo logger.AuthorizedInfo) {
-	logger := logger.GetLogger()
-
-	// Create structured log attributes using structures directly
-	attrs := []any{
-		"http_info", httpInfo,
-		"system_info", systemInfo,
-		"auth_info", authInfo,
-	}
-
-	// Determine log level and log with appropriate method
-	switch {
-	// status: 5xx, level: error
-	case statusCode >= http.StatusInternalServerError:
-		logger.ErrorContext(ctx, "Request completed", attrs...)
-
-	// status: 4xx, level: warn
-	case statusCode >= http.StatusBadRequest:
-		logger.WarnContext(ctx, "Request completed", attrs...)
-
-	// status: 2xx, level: info
-	default:
-		logger.InfoContext(ctx, "Request completed", attrs...)
-	}
-}
 
 // RequestMiddleware: Manage request start and end
 func RequestMiddleware(next http.HandlerFunc) http.HandlerFunc {
@@ -75,7 +47,9 @@ func RequestMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 			// Log request completion with simplified structure
 			ctx := *wrappedWriter.GetContext()
-			logRequestCompletion(ctx, wrappedWriter.GetStatusCode(), httpInfo, systemInfo, finalAuthInfo)
+
+			l := logger.New()
+			l.LogRequestCompletion(ctx, wrappedWriter.GetStatusCode(), httpInfo, systemInfo, finalAuthInfo)
 		}()
 
 		// Execute next handler
