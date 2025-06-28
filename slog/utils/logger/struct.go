@@ -6,19 +6,19 @@ import (
 	"os"
 )
 
-// Logger: ログ出力機能を提供する構造体
+// Logger: Logger struct
 type Logger struct {
 	*slog.Logger
 }
 
-// SystemInfo: システム情報を保持する構造体
+// SystemInfo: System information
 type SystemInfo struct {
 	Environment string `json:"environment"`
 	Service     string `json:"service"`
 	Hostname    string `json:"hostname"`
 }
 
-// NewSystemInfo: SystemInfoの新しいインスタンスを作成
+// NewSystemInfo: Create new SystemInfo instance
 func NewSystemInfo(env string) SystemInfo {
 	hostname, _ := os.Hostname()
 	return SystemInfo{
@@ -28,7 +28,7 @@ func NewSystemInfo(env string) SystemInfo {
 	}
 }
 
-// HTTPRequestInfo: HTTPリクエスト情報を保持する構造体
+// HTTPRequestInfo: HTTP request information
 type HTTPRequestInfo struct {
 	Method     string `json:"method"`
 	Path       string `json:"path"`
@@ -40,14 +40,14 @@ type HTTPRequestInfo struct {
 	RequestID  string `json:"request_id"`
 }
 
-// AuthorizedInfo: 認可後に得られる情報を保持する構造体
+// AuthorizedInfo: Authorized information
 type AuthorizedInfo struct {
 	Role     string `json:"role"`
 	TenantID string `json:"tenant_id"`
 	MemberID string `json:"member_id"`
 }
 
-// NewInitialAuthorizedInfo: AuthorizedInfoの新しいインスタンスを作成
+// NewInitialAuthorizedInfo: Create new AuthorizedInfo instance
 func NewInitialAuthorizedInfo() AuthorizedInfo {
 	return AuthorizedInfo{
 		Role:     "anonymous",
