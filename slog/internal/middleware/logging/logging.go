@@ -26,9 +26,9 @@ func RequestMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		// defer for request end logging
 		defer func() {
 			// Get latest context from wrappedWriter.ctx (updated by authorization middleware)
-			finalAuthInfo, _ := logger.GetAuthorizedInfoCtx(*wrappedWriter.GetContext())
-			systemInfo, _ := logger.GetSystemInfoCtx(*wrappedWriter.GetContext())
-			requestID, _ := logger.GetRequestIDCtx(*wrappedWriter.GetContext())
+			authorizedInfo, _ := logger.GetAuthorizedInfoContext(*wrappedWriter.GetContext())
+			systemInfo, _ := logger.GetSystemInfoContext(*wrappedWriter.GetContext())
+			requestID, _ := logger.GetRequestIDContext(*wrappedWriter.GetContext())
 
 			// Calculate processing time
 			latency := time.Since(startTime)
@@ -54,7 +54,7 @@ func RequestMiddleware(next http.HandlerFunc) http.HandlerFunc {
 				wrappedWriter.GetStatusCode(),
 				httpInfo,
 				systemInfo,
-				finalAuthInfo,
+				authorizedInfo,
 			)
 		}()
 
@@ -66,16 +66,16 @@ func RequestMiddleware(next http.HandlerFunc) http.HandlerFunc {
 // initializeRequestContext:
 func initializeRequestContext(r *http.Request) *http.Request {
 	// Generate request ID and set it in context
-	ctx := logger.SetRequestIDCtx(r.Context())
+	ctx := logger.SetRequestIDContext(r.Context())
 
 	// Initialize system information
 	env := configuration.GetEnvironment()
 	systemInfo := logger.NewSystemInfo(env)
-	ctx = logger.SetSystemInfoCtx(ctx, systemInfo)
+	ctx = logger.SetSystemInfoContext(ctx, systemInfo)
 
 	// Set initial authorized information
 	authInfo := logger.NewInitialAuthorizedInfo()
-	ctx = logger.SetAuthorizedInfoCtx(ctx, authInfo)
+	ctx = logger.SetAuthorizedInfoContext(ctx, authInfo)
 
 	// Update request with updated context
 	return r.WithContext(ctx)
