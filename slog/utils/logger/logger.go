@@ -9,12 +9,12 @@ import (
 )
 
 var (
-	globalLogger *Logger
+	globalLogger *AppLogger
 	once         sync.Once
 )
 
 // New: create new logger instance
-func New() *Logger {
+func New() *AppLogger {
 	once.Do(func() {
 		handler := slog.NewJSONHandler(
 			os.Stdout, &slog.HandlerOptions{
@@ -22,7 +22,7 @@ func New() *Logger {
 			},
 		)
 
-		globalLogger = &Logger{
+		globalLogger = &AppLogger{
 			Logger: slog.New(handler),
 		}
 	})
@@ -30,7 +30,7 @@ func New() *Logger {
 }
 
 // GetLogger: get global logger instance
-func GetLogger() *Logger {
+func GetLogger() *AppLogger {
 	if globalLogger == nil {
 		return New()
 	}
@@ -38,34 +38,33 @@ func GetLogger() *Logger {
 }
 
 // DebugContext: output debug log
-func (l *Logger) DebugContext(ctx context.Context, msg string, args ...any) {
+func (l *AppLogger) DebugContext(ctx context.Context, msg string, args ...any) {
 	l.Logger.DebugContext(ctx, msg, args...)
 }
 
 // InfoContext: output info log
-func (l *Logger) InfoContext(ctx context.Context, msg string, args ...any) {
+func (l *AppLogger) InfoContext(ctx context.Context, msg string, args ...any) {
 	l.Logger.InfoContext(ctx, msg, args...)
 }
 
 // WarnContext: output warn log
-func (l *Logger) WarnContext(ctx context.Context, msg string, args ...any) {
+func (l *AppLogger) WarnContext(ctx context.Context, msg string, args ...any) {
 	l.Logger.WarnContext(ctx, msg, args...)
 }
 
 // ErrorContext: output error log
-func (l *Logger) ErrorContext(ctx context.Context, msg string, args ...any) {
+func (l *AppLogger) ErrorContext(ctx context.Context, msg string, args ...any) {
 	l.Logger.ErrorContext(ctx, msg, args...)
 }
 
 // FatalContext: output fatal log
-func (l *Logger) FatalContext(ctx context.Context, msg string, args ...any) {
+func (l *AppLogger) FatalContext(ctx context.Context, msg string, args ...any) {
 	l.Logger.ErrorContext(ctx, msg, args...)
 	os.Exit(1)
 }
 
 // LogRequestCompletion: Log request completion with appropriate level based on status code
-func (l *Logger) LogRequestCompletion(ctx context.Context, statusCode int, httpInfo HTTPRequestInfo, systemInfo SystemInfo, authInfo AuthorizedInfo) {
-
+func (l *AppLogger) LogRequestCompletion(ctx context.Context, statusCode int, httpInfo HTTPRequestInfo, systemInfo SystemInfo, authInfo AuthorizedInfo) {
 	// Create structured log attributes using structures directly
 	attrs := []any{
 		"http_info", httpInfo,

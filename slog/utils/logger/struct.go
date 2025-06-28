@@ -7,8 +7,8 @@ import (
 	"os"
 )
 
-// Logger: Logger struct
-type Logger struct {
+// AppLogger: Application logger struct
+type AppLogger struct {
 	*slog.Logger
 }
 
