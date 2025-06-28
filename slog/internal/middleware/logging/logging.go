@@ -8,24 +8,6 @@ import (
 	"github.com/tamaco489/go_sandbox/slog/utils/logger"
 )
 
-// initializeRequestContext:
-func initializeRequestContext(r *http.Request) *http.Request {
-	// Generate request ID and set it in context
-	ctx := logger.SetRequestIDCtx(r.Context())
-
-	// Initialize system information
-	env := configuration.GetEnvironment()
-	systemInfo := logger.NewSystemInfo(env)
-	ctx = logger.SetSystemInfoCtx(ctx, systemInfo)
-
-	// Set initial authorized information
-	authInfo := logger.NewInitialAuthorizedInfo()
-	ctx = logger.SetAuthorizedInfoCtx(ctx, authInfo)
-
-	// Update request with updated context
-	return r.WithContext(ctx)
-}
-
 // RequestMiddleware: Manage request start and end
 func RequestMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -103,4 +85,22 @@ func RequestMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		// Execute next handler
 		next.ServeHTTP(wrappedWriter, r)
 	}
+}
+
+// initializeRequestContext:
+func initializeRequestContext(r *http.Request) *http.Request {
+	// Generate request ID and set it in context
+	ctx := logger.SetRequestIDCtx(r.Context())
+
+	// Initialize system information
+	env := configuration.GetEnvironment()
+	systemInfo := logger.NewSystemInfo(env)
+	ctx = logger.SetSystemInfoCtx(ctx, systemInfo)
+
+	// Set initial authorized information
+	authInfo := logger.NewInitialAuthorizedInfo()
+	ctx = logger.SetAuthorizedInfoCtx(ctx, authInfo)
+
+	// Update request with updated context
+	return r.WithContext(ctx)
 }
