@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/tamaco489/go_sandbox/slog/internal/handler"
-	"github.com/tamaco489/go_sandbox/slog/internal/logger"
+	"github.com/tamaco489/go_sandbox/slog/utils/logger"
 )
 
 func main() {

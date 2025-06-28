@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	"github.com/tamaco489/go_sandbox/slog/internal/handler/middleware"
+	"github.com/tamaco489/go_sandbox/slog/internal/middleware"
 )
 
 type Router struct {
