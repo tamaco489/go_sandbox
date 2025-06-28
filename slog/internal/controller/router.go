@@ -5,26 +5,28 @@ import (
 
 	"github.com/tamaco489/go_sandbox/slog/internal/handler"
 	"github.com/tamaco489/go_sandbox/slog/internal/middleware/auth"
-	"github.com/tamaco489/go_sandbox/slog/internal/middleware/logging"
 )
 
 type Router struct {
-	logRouter  *logging.LogRouter
+	mux        *http.ServeMux
 	authorizer auth.Authorizer
 }
 
 func NewRouter() *Router {
 	return &Router{
-		logRouter:  logging.NewLogRouter(),
+		mux:        http.NewServeMux(),
 		authorizer: auth.NewAuth(),
 	}
 }
 
 func (r *Router) RegisterRoutes() {
-	r.logRouter.HandleFunc("/api/v1/health", handler.HandleHealth) // NOTE: Skip authorization for health check
-	r.logRouter.HandleFunc("/api/v1/users/me", auth.WithAuth(r.authorizer, logging.WithLogging(handler.HandleUserMe)))
+	// ヘルスチェックは認可不要
+	r.mux.HandleFunc("/api/v1/health", handler.HandleHealth)
+
+	// ユーザー情報は認可が必要
+	r.mux.HandleFunc("/api/v1/users/me", auth.WithAuth(r.authorizer, handler.HandleUserMe))
 }
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	r.logRouter.ServeHTTP(w, req)
+	r.mux.ServeHTTP(w, req)
 }
