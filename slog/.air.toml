@@ -1,52 +1,44 @@
+# プロジェクトのルートディレクトリ
 root = "."
-testdata_dir = "testdata"
+
+# 一時ファイルなどを格納するディレクトリ（ビルドログなど）
 tmp_dir = "tmp"
 
 [build]
-  args_bin = []
-  bin = "./build/main"
-  cmd = "go build -o ./build/main ."
-  delay = 1000
-  exclude_dir = ["assets", "tmp", "vendor", "testdata"]
-  exclude_file = []
-  exclude_regex = ["_test.go"]
-  exclude_unchanged = false
-  follow_symlink = false
-  full_bin = ""
-  include_dir = []
-  include_ext = ["go", "tpl", "tmpl", "html"]
-  include_file = []
-  kill_delay = "0s"
-  log = "build-errors.log"
-  poll = false
-  poll_interval = 0
-  post_cmd = []
-  pre_cmd = []
-  rerun = false
-  rerun_delay = 500
-  send_interrupt = false
-  stop_on_error = false
+# ビルドコマンド（ここで明示的にエントリーポイントを指定）
+cmd = "go build -o ./build/main ./cmd/main.go"
 
-[color]
-  app = ""
-  build = "yellow"
-  main = "magenta"
-  runner = "green"
-  watcher = "cyan"
+# ビルド後のバイナリ実行ファイルのパス
+bin = "./build/main"
+
+# 除外するディレクトリ（監視・ビルド対象外）
+exclude_dir = ["tmp", "vendor", "testdata"]
+
+# 監視対象ファイルの拡張子（Goのみを対象に）
+include_ext = ["go"]
+
+# 除外するファイルパターン（例: *_test.go を除外）
+exclude_regex = ["_test.go"]
+
+# ビルドエラーのログ出力先ファイル
+log = "build-errors.log"
+
+# 変更検知からビルド実行までの遅延（ミリ秒）
+delay = 1000
 
 [log]
-  main_only = false
-  silent = false
-  time = false
+# メインプロセスのログのみ表示するか（falseで全て出力）
+main_only = false
 
-[misc]
-  clean_on_exit = false
+# ログ出力を無効化（falseでログ表示）
+silent = false
 
-[proxy]
-  app_port = 0
-  enabled = false
-  proxy_port = 0
+# ログに時刻を表示するか
+time = true
 
 [screen]
-  clear_on_rebuild = false
-  keep_scroll = true
+# 再ビルド時にコンソールをクリアするか
+clear_on_rebuild = true
+
+# スクロール位置を維持するか（trueでビルドログの末尾を維持）
+keep_scroll = true
