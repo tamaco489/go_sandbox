@@ -144,6 +144,62 @@ func (l *Logger) FatalContext(ctx context.Context, msg string, args ...any) {
 	os.Exit(1)
 }
 
+// contextKey: コンテキストキー
+type contextKey string
+
+const (
+	authorizedInfoKey contextKey = "authorized_info"
+	requestIDKey      contextKey = "request_id"
+	systemInfoKey     contextKey = "system_info"
+)
+
+// Context: コンテキストの型エイリアス
+type Context = context.Context
+
+// WithSystemInfo: コンテキストにシステム情報を設定
+func WithSystemInfo(ctx context.Context, info SystemInfo) context.Context {
+	return context.WithValue(ctx, systemInfoKey, info)
+}
+
+// GetSystemInfo: コンテキストからシステム情報を取得
+func GetSystemInfo(ctx context.Context) (SystemInfo, bool) {
+	info, ok := ctx.Value(systemInfoKey).(SystemInfo)
+	return info, ok
+}
+
+// WithValue: コンテキストに値を設定
+func WithValue(ctx context.Context, key interface{}, val interface{}) context.Context {
+	return context.WithValue(ctx, key, val)
+}
+
+// WithAuthorizedInfo: コンテキストに認可情報を設定
+func WithAuthorizedInfo(ctx context.Context, info AuthorizedInfo) context.Context {
+	return context.WithValue(ctx, authorizedInfoKey, info)
+}
+
+// GetAuthorizedInfo: コンテキストから認可情報を取得
+func GetAuthorizedInfo(ctx context.Context) (AuthorizedInfo, bool) {
+	info, ok := ctx.Value(authorizedInfoKey).(AuthorizedInfo)
+	return info, ok
+}
+
+// WithRequestID: コンテキストにリクエストIDを設定
+func WithRequestID(ctx context.Context, requestID string) context.Context {
+	return context.WithValue(ctx, requestIDKey, requestID)
+}
+
+// GenerateAndSetRequestID: UUIDを生成してコンテキストに設定
+func GenerateAndSetRequestID(ctx context.Context) context.Context {
+	requestID := uuid.New().String()
+	return WithRequestID(ctx, requestID)
+}
+
+// GetRequestID: コンテキストからリクエストIDを取得
+func GetRequestID(ctx context.Context) (string, bool) {
+	requestID, ok := ctx.Value(requestIDKey).(string)
+	return requestID, ok
+}
+
 // HTTPRequest: HTTPリクエスト情報をログに出力
 func (l *Logger) HTTPRequest(ctx context.Context, entry LogEntry) {
 	args := []any{
@@ -152,6 +208,7 @@ func (l *Logger) HTTPRequest(ctx context.Context, entry LogEntry) {
 		"message", entry.Message,
 		"system", entry.System,
 		"http", entry.HTTP,
+		"authorized_info", entry.AuthorizedInfo,
 	}
 
 	if entry.Error != "" {
@@ -161,50 +218,15 @@ func (l *Logger) HTTPRequest(ctx context.Context, entry LogEntry) {
 	switch entry.Level {
 	case "debug":
 		l.DebugContext(ctx, entry.Message, args...)
-
 	case "info":
 		l.InfoContext(ctx, entry.Message, args...)
-
 	case "warn":
 		l.WarnContext(ctx, entry.Message, args...)
-
 	case "error":
 		l.ErrorContext(ctx, entry.Message, args...)
-
 	case "fatal":
 		l.FatalContext(ctx, entry.Message, args...)
-
 	default:
 		l.InfoContext(ctx, entry.Message, args...)
 	}
-}
-
-// DebugContext: デバッグログを出力
-func DebugContext(ctx context.Context, msg string, args ...any) {
-	GetLogger().DebugContext(ctx, msg, args...)
-}
-
-// InfoContext: 情報ログを出力
-func InfoContext(ctx context.Context, msg string, args ...any) {
-	GetLogger().InfoContext(ctx, msg, args...)
-}
-
-// WarnContext: 警告ログを出力
-func WarnContext(ctx context.Context, msg string, args ...any) {
-	GetLogger().WarnContext(ctx, msg, args...)
-}
-
-// ErrorContext: エラーログを出力
-func ErrorContext(ctx context.Context, msg string, args ...any) {
-	GetLogger().ErrorContext(ctx, msg, args...)
-}
-
-// FatalContext: 致命的なエラーログを出力
-func FatalContext(ctx context.Context, msg string, args ...any) {
-	GetLogger().FatalContext(ctx, msg, args...)
-}
-
-// HTTPRequest: HTTPリクエスト情報をログに出力
-func HTTPRequest(ctx context.Context, entry LogEntry) {
-	GetLogger().HTTPRequest(ctx, entry)
 }

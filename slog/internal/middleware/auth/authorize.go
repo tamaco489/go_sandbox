@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"errors"
 	"net/http"
 
 	"github.com/tamaco489/go_sandbox/slog/utils/logger"
@@ -16,13 +15,12 @@ func NewAuth() *Auth {
 
 // Authorize checks if the request is authorized
 func (a *Auth) Authorize(ctx context.Context, r *http.Request) (*logger.AuthorizedInfo, error) {
-	// NOTE Implement authorization logic
+	// NOTE: テスト用に認可成功を返す
+	// 実際の実装では、JWTトークンの検証やデータベースでの認可チェックを行う
 
-	// ログの検証のため、ここでエラーが発生した場合はエラーを返す
-	// return &logger.AuthorizedInfo{
-	//     Role:     "user",
-	//     TenantID: "tenant123",
-	//     MemberID: "member456",
-	// }, nil
-	return nil, errors.New("not authorized")
+	return &logger.AuthorizedInfo{
+		Role:     "user",
+		TenantID: "tenant123",
+		MemberID: "member456", // 固有のmember_id
+	}, nil
 }

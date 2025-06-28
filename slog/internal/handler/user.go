@@ -19,11 +19,11 @@ func HandleUserMe(w http.ResponseWriter, r *http.Request) {
 	// In a real application, this would be extracted from authentication context
 	response := UserMeResponse{UID: "864c857e-bc03-7b09-5b8f-750d312636c3"}
 
-	json, err := json.Marshal(response)
+	jsonData, err := json.Marshal(response)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	w.Write(json)
+	w.Write(jsonData)
 }
