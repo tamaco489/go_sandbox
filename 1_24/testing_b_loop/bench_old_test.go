@@ -8,7 +8,7 @@ import (
 
 // BenchmarkOld は従来の b.N ループを使ったベンチマーク。
 func BenchmarkOld(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for i := 0; i < b.N; i++ { //nolint:bloop // 旧パターンの比較用
 		strings.ToUpper("hello, world")
 	}
 }
@@ -24,7 +24,7 @@ func BenchmarkOldWithSetup(b *testing.B) {
 	defer f.Close()
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for i := 0; i < b.N; i++ { //nolint:bloop // 旧パターンの比較用
 		if _, err := f.WriteString("hello\n"); err != nil {
 			b.Fatal(err)
 		}
